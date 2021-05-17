@@ -1,0 +1,25 @@
+{
+  "name": "marie_michee_6_17052021",
+  "version": "1.0.0",
+  "description": " API sécurisée pour une application d'avis gastronomiques",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MMary13/Marie_Michee_6_17052021.git"
+  },
+  "author": "Marie Michée",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MMary13/Marie_Michee_6_17052021/issues"
+  },
+  "homepage": "https://github.com/MMary13/Marie_Michee_6_17052021#readme",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "mongoose": "^5.12.9",
+    "nodemon": "^2.0.7"
+  }
+}
