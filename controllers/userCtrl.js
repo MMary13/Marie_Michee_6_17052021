@@ -2,6 +2,7 @@ const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+//Signup User method, use bcrypt to encrypt password--------
 exports.signup = (req, res, next) => {
     //Password encryption
     bcrypt.hash(req.body.password, 10)
@@ -20,7 +21,7 @@ exports.signup = (req, res, next) => {
         .catch(error => res.status(500).json({ error }));
 };
 
-
+//Login User method, check the password and give a token access if OK-----------------
 exports.login = (req, res, next) => {
 User.findOne({email: req.body.email})
     .then(user => {
