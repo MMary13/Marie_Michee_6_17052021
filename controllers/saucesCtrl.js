@@ -63,7 +63,7 @@ exports.deleteSauce = (req, res, next) => {
     .catch(error => res.status(500).json({ error}));
   };
 
-//POST: update likes or dislikes
+//POST: update likes or dislikes-----------------
 exports.modifyLikes = (req, res, next) => {
   const userId = req.body.userId;
   const like = req.body.like;
@@ -73,21 +73,22 @@ exports.modifyLikes = (req, res, next) => {
     .catch(error => res.status(500).json({ error}));
 };
 
+//Method to update the data for a like or a dislike------------
 function updateLikeOrDislike(sauce, userId, like,req,res) {
-  console.log("Sauce : "+sauce);
   const LIKE_STATUS = {
     '1': 'like',
     '0': 'none',
     '-1': 'dislike'
   };
-  switch (like) {
-    case 1:
+  const status = LIKE_STATUS[like];
+  switch (status) {
+    case 'like':
       likeUpdate(req,res,sauce,userId);
       break;
-    case 0:
+    case 'none':
       undoLikeOrDislike(req,res,sauce,userId);
       break;
-    case -1:
+    case 'dislike':
       dislikeUpdate(req,res,sauce,userId)
       break;
     default:
@@ -168,3 +169,4 @@ function dislikeUpdate(req,res,sauce,userId) {
         res.status(400).json({ error })
       });
 }
+

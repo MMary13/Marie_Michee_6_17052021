@@ -21,6 +21,14 @@ app.use((req, res, next) => {
     next();
   });  
 
+// app.use((req,res,next) => {
+//   mongoose.connection.db.dropCollection('sauces', function(err, result){
+//     console.log("Collection dropped : "+result);
+//     console.error(err);
+//   });
+//   next();
+// })
+
 app.use(express.json());
 app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use('/api/sauces', saucesRoutes);
