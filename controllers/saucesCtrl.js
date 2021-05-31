@@ -18,14 +18,19 @@ exports.getOneSauce = (req, res, next) => {
 //POST: create a new sauce -------------
 exports.createSauce = (req, res, next) => {
     const sauceObject = JSON.parse(req.body.sauce);
-    delete sauceObject._id;
-    const newSauce = new Sauce({
-        ...sauceObject,
-        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-    });
-    newSauce.save()
-        .then(() => res.status(201).json({ message: 'Sauce enregistrée !'}))
-        .catch(error => res.status(400).json({ error }));
+    if(sauceValidation(sauceObject)) {
+      delete sauceObject._id;
+      const newSauce = new Sauce({
+          ...sauceObject,
+          imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+      });
+      newSauce.save()
+          .then(() => res.status(201).json({ message: 'Sauce enregistrée !'}))
+          .catch(error => res.status(400).json({ error }));
+    } else {
+      res.status(400).json({ error : "Un des champs n'est pas renseigné correctement" });
+    }
+    
 };
 
 //PUT: update a sauce---------
@@ -170,3 +175,38 @@ function dislikeUpdate(req,res,sauce,userId) {
       });
 }
 
+//Request validation before create a sauce
+function sauceValidation(sauceRequest) {
+  const nameIsValidated = stringValidation(sauceRequest.name);
+  const manufacturerIsValidated = stringValidation(sauceRequest.manufacturer);
+  const descriptionIsValidated = stringValidation(sauceRequest.description);
+  const mainPepperIsValidated = stringValidation(sauceRequest.mainPepper);
+  const heatIsValidated = heatValidation(sauceRequest.heat);
+  if(nameIsValidated&&manufacturerIsValidated&&descriptionIsValidated&&mainPepperIsValidated&&heatIsValidated) {
+    return true;
+  } else {
+    console.error("Un des champs n'est pas valide !")
+    return false;
+  }
+}
+
+//Validation des champs "string"---------------
+function stringValidation(stringValue) {
+  const stringRegex =/^([\w-éèêïô!$%^&*()_+|~=`\\#{}\[\]:";'<>?,.\/]).{2,}$/;
+  if(stringValue.trim().match(stringRegex)) {
+    return true;
+  } else {
+    console.error("La valeur suivante n'est pas valide : "+stringValue);
+    return false;
+  }
+}
+
+//Validation du champ heat--------------------- 
+function heatValidation(heatValue) {
+  if((heatValue>=1)&&(heatValue<=10)) {
+    return true;
+  } else {
+    console.error("La valeur de piment est incorrecte")
+    return false;
+  }
+}
