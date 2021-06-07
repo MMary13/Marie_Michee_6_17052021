@@ -48,10 +48,13 @@ exports.modifySauce = (req, res, next) => {
         })
         .catch(error => res.status(400).json({ error }));
     }
-    
-    Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
+    if(sauceValidation(sauceObject)) {
+      Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
       .then(() => res.status(200).json({ message: 'Sauce modifiée !'}))
       .catch(error => res.status(400).json({ error }));
+    } else {
+      res.status(400).json({ error : 'Un des champs de la requête est invalid'})
+    }
 };
 
 //DELETE: file from server and sauce from DB---------
@@ -70,12 +73,16 @@ exports.deleteSauce = (req, res, next) => {
 
 //POST: update likes or dislikes-----------------
 exports.modifyLikes = (req, res, next) => {
-  const userId = req.body.userId;
-  const like = req.body.like;
-  console.log("Like status : "+ like);
-  Sauce.findOne({_id: req.params.id})
-    .then(sauce => updateLikeOrDislike(sauce,userId,like,req,res))
-    .catch(error => res.status(500).json({ error}));
+  if(likeRequestValidation(req.body)) {
+    const userId = req.body.userId;
+    const like = req.body.like;
+    console.log("Like status : "+ like);
+    Sauce.findOne({_id: req.params.id})
+      .then(sauce => updateLikeOrDislike(sauce,userId,like,req,res))
+      .catch(error => res.status(500).json({ error}));
+  } else {
+    res.status(400).json({ error : 'Bad request'});
+  }
 };
 
 //Method to update the data for a like or a dislike------------
@@ -94,7 +101,7 @@ function updateLikeOrDislike(sauce, userId, like,req,res) {
       undoLikeOrDislike(req,res,sauce,userId);
       break;
     case 'dislike':
-      dislikeUpdate(req,res,sauce,userId)
+      dislikeUpdate(req,res,sauce,userId);
       break;
     default:
       res.status(400).json({message : "La requête n'est pas correcte"});
@@ -108,7 +115,6 @@ function likeUpdate(req,res,sauce,userId) {
   console.log('User want to like');
   if(sauce.usersLiked.includes(userId)) {
     //Already like the sauce
-    console.log('coucou');
     res.status(401).json({ error : 'Vous aimez dejà cette sauce!' });
   } else {
     //Update the fields for a like
@@ -175,7 +181,9 @@ function dislikeUpdate(req,res,sauce,userId) {
       });
 }
 
-//Request validation before create a sauce
+
+//Functions for requests validation -----------------------------------------------------
+//Request validation to create a sauce----------------------------
 function sauceValidation(sauceRequest) {
   const nameIsValidated = stringValidation(sauceRequest.name);
   const manufacturerIsValidated = stringValidation(sauceRequest.manufacturer);
@@ -190,13 +198,22 @@ function sauceValidation(sauceRequest) {
   }
 }
 
-//Validation des champs "string"---------------
+//Validation for "string" fields---------------
 function stringValidation(stringValue) {
-  const stringRegex =/^([\w-éèêïô!$%^&*()_+|~=`\\#{}\[\]:";'<>?,.\/]).{2,}$/;
-  if(stringValue.trim().match(stringRegex)) {
+  stringValue = stringValue.trim();
+  if(typeof stringValue === 'string' || stringValue instanceof String) {
+    for(let i=0 ; i<stringValue.length ; i++) {
+      let asciiValue = stringValue.charCodeAt(i);
+      if((asciiValue>=32 && asciiValue<=42) || (asciiValue>=43 && asciiValue<=63) || (asciiValue>=65 && asciiValue<=126)) {
+      }else {
+        //Caractère non valide
+        console.error("Caractère non valide");
+        return false;
+      }
+    }
     return true;
   } else {
-    console.error("La valeur suivante n'est pas valide : "+stringValue);
+    //Ce n'est pas une chaine de caractères
     return false;
   }
 }
@@ -207,6 +224,17 @@ function heatValidation(heatValue) {
     return true;
   } else {
     console.error("La valeur de piment est incorrecte")
+    return false;
+  }
+}
+
+//Validation request for a like------------
+function likeRequestValidation(bodyRequest) {
+  const userId = bodyRequest.userId;
+  const likeStatus = bodyRequest.like;
+  if((userId != null)&&(likeStatus>=-1 && likeStatus<=1)) {
+    return true;
+  } else {
     return false;
   }
 }
